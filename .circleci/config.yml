@@ -144,6 +144,8 @@ jobs:
       - run:
           name: Ensure back-end infrastructure exists
           command: |
+            pwd
+            ls .circleci/files
             aws cloudformation deploy \
               --template-file .circleci/files/backend.yml \
               --tags project=udapeople \
@@ -178,7 +180,7 @@ jobs:
       # Add ssh keys with fingerprint
       - add_ssh_keys:
           fingerprints:
-            - "My fingerprint" # TODO: Add your fingerprint here
+            - "df:1c:78:14:2d:83:de:39:b2:b4:30:3e:35:4e:b9:04"
       # attach workspace
       - run:
           name: Install dependencies
@@ -267,7 +269,7 @@ jobs:
       # Add ssh keys with fingerprint
       - add_ssh_keys:
           fingerprints:
-            - "My fingerprint" # TODO: Add your fingerprint here
+            - "df:1c:78:14:2d:83:de:39:b2:b4:30:3e:35:4e:b9:04"
       # attach workspace
       - attach_workspace:
           at: ~/
