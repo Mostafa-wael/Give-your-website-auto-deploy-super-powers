@@ -35,8 +35,8 @@ Please watch the [video walkthrough of setting up your secrets here](https://www
   - `TYPEORM_MIGRATIONS_DIR`=`./src/migrations`
   - `TYPEORM_ENTITIES`=`./src/modules/domain/**/*.entity.ts`
   - `TYPEORM_MIGRATIONS`=`./src/migrations/*.ts`
-  - `TYPEORM_HOST`={your postgres database hostname in RDS}
   - `TYPEORM_PORT`=`5532` (or the port from RDS if it’s different)
+  - `TYPEORM_HOST`={your postgres database hostname in RDS}
   - `TYPEORM_USERNAME`={your postgres database username in RDS}
   - `TYPEORM_PASSWORD`={your postgres database password in RDS}
   - `TYPEORM_DATABASE`={your postgres database name in RDS}
