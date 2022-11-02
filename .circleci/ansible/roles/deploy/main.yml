@@ -1,0 +1,18 @@
+- name: Creates directory
+  file:
+    path: ~/web
+    state: directory
+
+
+- name: "Move files"
+  unarchive:
+    src: ~/project/artifact.tar.gz
+    dest: ~/web
+
+
+- name: "Start job" 
+  shell: |
+    cd ~/web
+    pm2 stop default
+    pm2 start npm -- start
+
