@@ -328,11 +328,13 @@ jobs:
       - run:
           name: Backend smoke test.
           command: |
-            curl -k ${API_URL}
-            if [ $? -ne 0 ]
-            then
-              exit 1
-            fi
+            if curl -k ${API_URL}
+              then
+                # Change this to 0 after the job fails
+                return 1
+              else
+                return 1
+              fi
       - run:
           name: Frontend smoke test.
           command: |
