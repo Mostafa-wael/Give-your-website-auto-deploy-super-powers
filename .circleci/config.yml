@@ -206,6 +206,11 @@ jobs:
       # Checkout code from git
       - checkout
       - run:
+         name: Install dependencies
+         command: |
+           sudo apt update -y
+           sudo apt install awscli -y
+      - run:
           name: Run migrations
           command: |
             cd backend
@@ -402,13 +407,14 @@ workflows:
       #     requires: [build-frontend]
       # - test-backend:
       #     requires: [build-backend]
-      # - scan-backend:
-      #     requires: [build-backend]
-      # - scan-frontend:
-      #     requires: [build-frontend]
+      - scan-backend:
+          requires: [build-backend]
+      - scan-frontend:
+          requires: [build-frontend]
       - deploy-infrastructure:
           # requires: [test-frontend, test-backend, scan-frontend, scan-backend]
-          requires: [build-frontend, build-backend]
+          requires: [scan-frontend, scan-backend]
+          # requires: [build-frontend, build-backend]
           filters:
             branches:
               only: [master]
