@@ -165,26 +165,27 @@ jobs:
       - run:
           name: Add back-end ip to ansible inventory
           command: |
-            aws ec2 describe-instances --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" --query 'Reservations[*].Instances[*].PublicIpAddress' --output text >> .circleci/ansible/inventory.txt
+              echo [web] > ~/inventory.txt
+              aws ec2 describe-instances \
+                  --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+                  --query 'Reservations[*].Instances[*].PublicIpAddress' \
+                  --output text >> ~/inventory.txt
+              cat ~/inventory.txt
       - persist_to_workspace:
           root: ~/
           paths:
-            - project/.circleci/ansible/inventory.txt
-      # Here's where you will add some code to rollback on failure    
-      - destroy-environment  
+            - inventory.txt
+      - destroy-environment
 
   configure-infrastructure:
     docker:
-      # Docker image here that supports Ansible
       - image: python:3.7-alpine3.11
     steps:
-      # Checkout code from git
       - checkout
-      # Add ssh keys with fingerprint
       - add_ssh_keys:
-          fingerprints:
-            - "df:1c:78:14:2d:83:de:39:b2:b4:30:3e:35:4e:b9:04"
-      # attach workspace
+                fingerprints: ["df:1c:78:14:2d:83:de:39:b2:b4:30:3e:35:4e:b9:04"]
+      - attach_workspace:
+            at: ~/  
       - run:
           name: Install dependencies
           command: |
@@ -193,8 +194,21 @@ jobs:
       - run:
           name: Configure server
           command: |
-            cd .circleci/ansible
-            ansible-playbook -i inventory.txt configure-server.yml
+            # set environment variables:
+            echo NODE_ENV=production > ~/project/backend/.env
+            echo TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> ~/project/backend/.env
+            echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> ~/project/backend/.env
+            echo TYPEORM_ENTITIES=$TYPEORM_ENTITIES >> ~/project/backend/.env
+            echo TYPEORM_HOST=$TYPEORM_HOST >> ~/project/backend/.env
+            echo TYPEORM_MIGRATIONS=$TYPEORM_MIGRATIONS >> ~/project/backend/.env
+            echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> ~/project/backend/.env
+            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> ~/project/backend/.env
+            echo TYPEORM_PORT=5432 >> ~/project/backend/.env
+            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> ~/project/backend/.env
+
+            cat ~/project/backend/.env
+            cat ~/inventory.txt
+            ansible-playbook -i ~/inventory.txt .circleci/ansible/configure-prometheus-node-exporter.yml
       # Here's where you will add some code to rollback on failure 
       - destroy-environment 
 
