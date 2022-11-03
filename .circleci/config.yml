@@ -21,12 +21,12 @@ commands:
           # Add when this will run
           command: |
             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
-            SUCCESS=$(curl --insecure  https://kvdb.io/Y4cBWwPrYsG6CnnWqQTXjT/migration_${CIRCLE_WORKFLOW_ID:0:7})
+            SUCCESS=$(curl --insecure  https://kvdb.io/4LDD5LS7tvEu1vvZ9jwy6P/migration_${CIRCLE_WORKFLOW_ID:0:7})
             if(( $SUCCESS==1 )); 
             then
-            cd ~/project/backend
-            npm install
-            Add revert code here. You can find this in the Getting Started section.
+              cd ~/project/backend
+              npm install
+              npm run migrations:revert              
             fi
             
 jobs:
@@ -208,7 +208,7 @@ jobs:
 
             cat ~/project/backend/.env
             cat ~/inventory.txt
-            
+
             ansible-playbook -i ~/inventory.txt .circleci/ansible/configure-server.yml
       # Here's where you will add some code to rollback on failure 
       - destroy-environment 
@@ -218,13 +218,7 @@ jobs:
     docker:
       - image: circleci/node:13.8.0
     steps:
-      # Checkout code from git
       - checkout
-      - run:
-          name: Install dependencies
-          command: |
-           sudo apt update -y
-           sudo apt install awscli -y
       - run:
           name: Run migrations
           command: |
