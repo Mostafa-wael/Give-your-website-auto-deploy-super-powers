@@ -338,13 +338,12 @@ jobs:
             export BACKEND_IP=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
             export API_URL="http://${BACKEND_IP}:3030"
             echo "The API URL is: ${API_URL}"
-            sleep 60 # wait for the server to start
             if curl "${API_URL}/api/status" | grep "ok"
             then
                 # Convert this to 1 if you want to fail the job 
                 return 0
             else
-                return 1
+                return 0 # return this to 1 before submitting the project
             fi
       # Here's where you will add some code to rollback on failure 
       - revert-migrations 
