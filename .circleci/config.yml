@@ -17,7 +17,7 @@ commands:
     steps:
       - run:
           name: Revert migrations
-          # Add when this will run
+          when: on_fail
           command: |
             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
             SUCCESS=$(curl --insecure  https://kvdb.io/4LDD5LS7tvEu1vvZ9jwy6P/migration_${CIRCLE_WORKFLOW_ID:0:7})
@@ -336,7 +336,7 @@ jobs:
             if curl -v $API_URL
               then
                 # Change this to 0 after the job fails
-                return 1
+                return 0
               else
                 return 1
               fi
