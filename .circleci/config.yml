@@ -383,21 +383,32 @@ jobs:
       - run:
           name: Get old stack workflow id
           command: |
+            # Fetch the Old workflow ID
             export OldWorkflowID=$(aws cloudformation \
-            list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
-            --no-paginate --output text)
+                    list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
+                    --no-paginate --output text) >> $BASH_ENV
+            echo OldWorkflowID: "${OldWorkflowID}"
+            echo CIRCLE_WORKFLOW_ID "${CIRCLE_WORKFLOW_ID:0:7}"
+            # Fetch the stack names          
             export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
-            --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
-            export STACKS=[${OldWorkflowID}] #put the list of stacks here
+                    --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) >> $BASH_ENV
+            echo Stack names: "${STACKS[@]}" 
       - run:
           name: Remove old stacks and files
           command: |
-            if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
+            echo OldWorkflowID: "${OldWorkflowID}"
+            echo Stack names: "${STACKS[@]}" 
+            if [[ "${OldWorkflowID}" =~ "${STACKS[@]}"  ]]
             then
-              aws cloudformation delete-stack --stack-name "${OldWorkflowID}"
-              aws s3 rm s3://udapeople-"${OldWorkflowID}" --recursive
+              APP_NAME="udapeople"
+              echo "Deleting old stacks"
+              aws cloudformation delete-stack --stack-name "${APP_NAME}-backend-${OldWorkflowID}"
+              aws cloudformation delete-stack --stack-name "${APP_NAME}-frontend-${OldWorkflowID}"
+              echo "Deleting old buckets"
+              aws s3 rm s3://"${APP_NAME}-${OldWorkflowID}" --recursive
+              aws s3api delete-bucket --bucket "${APP_NAME}-${OldWorkflowID}"
             else
-              echo "No old stacks to delete or failed to cleanup"
+              echo "Nothing to delete or cleanup"
             fi
             
 
