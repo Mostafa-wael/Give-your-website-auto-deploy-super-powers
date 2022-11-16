@@ -232,8 +232,8 @@ jobs:
             then
                 curl -k https://kvdb.io/4LDD5LS7tvEu1vvZ9jwy6P/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
             fi
-      - destroy-environment  
       - revert-migrations
+      - destroy-environment  
 
   deploy-frontend:
     docker:
@@ -269,8 +269,8 @@ jobs:
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive    
       # Here's where you will add some code to rollback on failure  
-      - destroy-environment
       - revert-migrations
+      - destroy-environment
               
   deploy-backend:
     docker:
@@ -303,8 +303,8 @@ jobs:
             cd .circleci/ansible
             ansible-playbook -i inventory.txt deploy-backend.yml
       # Here's where you will add some code to rollback on failure  
-      - destroy-environment
       - revert-migrations
+      - destroy-environment
   
   smoke-test:
     docker:
@@ -321,19 +321,6 @@ jobs:
       - attach_workspace:
           at: ~/ 
       - run:
-          name: Backend smoke test.
-          command: |
-            export BACKEND_IP=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
-            export API_URL="http://${BACKEND_IP}:3030"
-            echo "The API URL is: ${API_URL}"
-            if curl "${API_URL}/api/status" | grep "ok"
-            then
-                # Convert this to 1 if you want to fail the job 
-                return 0
-            else
-                return 1
-            fi
-      - run:
           name: Frontend smoke test.
           command: |
             URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-east-1.amazonaws.com/#/employees"            
@@ -344,6 +331,20 @@ jobs:
               return 0
             else
               return 1
+            fi
+      - run:
+          name: Backend smoke test.
+          command: |
+            export BACKEND_IP=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
+            export API_URL="http://${BACKEND_IP}:3030"
+            echo "The API URL is: ${API_URL}"
+            sleep 60 # wait for the server to start
+            if curl "${API_URL}/api/status" | grep "ok"
+            then
+                # Convert this to 1 if you want to fail the job 
+                return 0
+            else
+                return 1
             fi
       # Here's where you will add some code to rollback on failure 
       - revert-migrations 
@@ -370,8 +371,8 @@ jobs:
             --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
             --tags project=udapeople
       # Here's where you will add some code to rollback on failure  
-      - destroy-environment
       - revert-migrations
+      - destroy-environment
 
   cleanup:
     docker:
@@ -406,18 +407,17 @@ workflows:
     jobs:
       - build-frontend
       - build-backend
-      # - test-frontend:
-      #     requires: [build-frontend]
-      # - test-backend:
-      #     requires: [build-backend]
-      # - scan-backend:
-      #     requires: [build-backend]
-      # - scan-frontend:
-      #     requires: [build-frontend]
+      - test-frontend:
+          requires: [build-frontend]
+      - test-backend:
+          requires: [build-backend]
+      - scan-backend:
+          requires: [build-backend]
+      - scan-frontend:
+          requires: [build-frontend]
       - deploy-infrastructure:
           # requires: [test-frontend, test-backend, scan-frontend, scan-backend]
-          # requires: [scan-frontend, scan-backend]
-          # requires: [build-frontend, build-backend]
+          requires: [build-frontend, build-backend] # remove this before submitting
           filters:
             branches:
               only: [master]
