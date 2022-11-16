@@ -8,6 +8,7 @@ commands:
           name: Destroy environments
           when: on_fail
           command: |
+            echo "Destroying environment: << parameters.workflow_id >> "
             aws s3 rm s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
             aws cloudformation delete-stack --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}"
             aws cloudformation delete-stack --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}"
@@ -114,7 +115,6 @@ jobs:
             npm install
             npm audit fix --audit-level=critical --force
             # npm audit --audit-level=critical
-
 
   scan-backend:
     docker:
@@ -236,7 +236,6 @@ jobs:
       - destroy-environment  
       - revert-migrations
 
-
   deploy-frontend:
     docker:
       # Docker image here that supports AWS CLI
@@ -273,8 +272,7 @@ jobs:
       # Here's where you will add some code to rollback on failure  
       - destroy-environment
       - revert-migrations
-
-                    
+              
   deploy-backend:
     docker:
       # Docker image here that supports Ansible
@@ -308,6 +306,7 @@ jobs:
       # Here's where you will add some code to rollback on failure  
       - destroy-environment
       - revert-migrations
+  
   smoke-test:
     docker:
       # Lightweight Docker image 
@@ -329,14 +328,14 @@ jobs:
             --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
             --output text)
-            export API_URL="http://${BACKEND_IP}:3030"
+            export API_URL=http://${BACKEND_IP}:3030
             echo "API_URL: ${API_URL}"
             # Instead of this, we can source the frontend/.env and take the API_URL from it.  
             # source frontend/.env
       - run:
           name: Backend smoke test.
           command: |
-            if curl -k ${API_URL}
+            if curl -v $API_URL
               then
                 # Change this to 0 after the job fails
                 return 1
@@ -380,7 +379,8 @@ jobs:
       # Here's where you will add some code to rollback on failure  
       - destroy-environment
       - revert-migrations
-cleanup:
+
+  cleanup:
     docker:
       # Docker image here
       - image: amazon/aws-cli
@@ -423,7 +423,7 @@ workflows:
           requires: [build-frontend]
       - deploy-infrastructure:
           # requires: [test-frontend, test-backend, scan-frontend, scan-backend]
-          requires: [scan-frontend, scan-backend]
+          # requires: [scan-frontend, scan-backend]
           # requires: [build-frontend, build-backend]
           filters:
             branches:
@@ -440,5 +440,5 @@ workflows:
           requires: [deploy-backend, deploy-frontend]
       - cloudfront-update:
           requires: [smoke-test]
-      # - cleanup:
-      #     requires: [cloudfront-update]
+      - cleanup:
+          requires: [cloudfront-update]
