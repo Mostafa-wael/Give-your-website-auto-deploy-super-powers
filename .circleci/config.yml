@@ -323,29 +323,24 @@ jobs:
       - run:
           name: Backend smoke test.
           command: |
-            echo "Get backend url"
-            BACKEND_IP=$(aws ec2 describe-instances \
-            --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-            --query 'Reservations[*].Instances[*].PublicIpAddress' \
-            --output text)
-            export API_URL=http://${BACKEND_IP}:3030
-            echo "API_URL: ${API_URL}"
-            ########################################### 
-            # Instead of this, we can source the frontend/.env and take the API_URL from it.  
-            # source frontend/.env
-            if curl -v $API_URL
-              then
-                # Change this to 0 after the job fails
+            export BACKEND_IP=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
+            export API_URL="http://${BACKEND_IP}:3030"
+            echo "The API URL is: ${API_URL}"
+            if curl "${API_URL}/api/status" | grep "ok"
+            then
+                # Convert this to 1 if you want to fail the job 
                 return 0
-              else
+            else
                 return 1
-              fi
+            fi
       - run:
           name: Frontend smoke test.
           command: |
-            export URL="http://udapeople-${CIRCLE_WORKFLOW_ID}.s3-website-us-east-1.amazonaws.com"
+            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-east-1.amazonaws.com/#/employees"            
+            echo "You access the static website from: ${URL} "
             if curl -s ${URL} | grep "Welcome"
             then
+              # Convert this to 1 if you want to fail the job 
               return 0
             else
               return 1
