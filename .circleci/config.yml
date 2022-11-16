@@ -216,6 +216,11 @@ jobs:
     steps:
       - checkout
       - run:
+         name: Install dependencies
+         command: |
+           sudo apt update -y
+           sudo apt install awscli -y
+      - run:
           name: Run migrations
           command: |
             cd backend
