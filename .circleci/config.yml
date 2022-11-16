@@ -359,7 +359,7 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apk add --update --no-cache aws-cli curl tar gzip nodejs npm
+            yum install -y tar gzip
       - run:
           name: Update cloudfront distribution
           command: |
