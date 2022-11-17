@@ -205,8 +205,12 @@ jobs:
             cat ~/inventory.txt
            
             ansible-playbook -i ~/inventory.txt .circleci/ansible/configure-server.yml
-      # Here's where you will add some code to rollback on failure 
-      - destroy-environment 
+      - run:
+          name: Install node-explorer
+          command: |
+            ansible-playbook -i ~/inventory.txt .circleci/ansible/configure-prometheus-node-exporter.yml
+
+      - destroy-environment  
 
   run-migrations:
     docker:
@@ -295,12 +299,14 @@ jobs:
           name: Deploy backend
           command: |
             cd backend
-            npm install
+            npm i
             npm run build
             cd ..
             # Zipping the backend
             tar -C backend -czvf artifact.tar.gz .
             cd .circleci/ansible
+            echo "inventory.txt file: "
+            cat inventory.txt
             ansible-playbook -i inventory.txt deploy-backend.yml
       # Here's where you will add some code to rollback on failure  
       - revert-migrations

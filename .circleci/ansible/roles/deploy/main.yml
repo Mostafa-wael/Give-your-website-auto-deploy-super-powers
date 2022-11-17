@@ -4,15 +4,14 @@
     state: directory
 
 
-- name: "Move files"
+- name: "Unarchive files and move to ec2"
   unarchive:
     src: ~/project/artifact.tar.gz
     dest: ~/web
 
 
-- name: "Start job" 
+- name: Executing node
   shell: |
     cd ~/web
     pm2 stop default
     pm2 start npm -- start
-
