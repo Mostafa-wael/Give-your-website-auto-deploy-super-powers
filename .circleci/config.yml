@@ -343,7 +343,8 @@ jobs:
                 # Convert this to 1 if you want to fail the job 
                 return 0
             else
-                return 0 # return this to 1 before submitting the project
+                #TODO: return this to 1 before submitting the project
+                return 0 
             fi
       # Here's where you will add some code to rollback on failure 
       - revert-migrations 
