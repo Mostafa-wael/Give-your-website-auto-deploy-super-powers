@@ -389,22 +389,23 @@ jobs:
                     --no-paginate --output text)
             echo OldWorkflowID: "${OldWorkflowID}"
             echo CIRCLE_WORKFLOW_ID "${CIRCLE_WORKFLOW_ID:0:7}"
-            # Fetch the stack names          
-            export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
-                    --stack-status-filter CREATE_COMPLETE --no-paginate --output text))
-            echo Stack names: "${STACKS[@]}" 
-            ################################################################################ 
-            if [[ "${OldWorkflowID}" =~ "${STACKS[@]}"  ]]
+            echo OldWorkflowID="${OldWorkflowID}" >> $BASH_ENV
+      - run:
+          name: Remove old stacks and files
+          command: |
+            echo OldWorkflowID: "${OldWorkflowID}"
+            if [[ "${CIRCLE_WORKFLOW_ID:0:7}" != "${OldWorkflowID}" ]]
             then
-              APP_NAME="udapeople"
-              echo "Deleting old stacks"
-              aws cloudformation delete-stack --stack-name "${APP_NAME}-backend-${OldWorkflowID}"
-              aws cloudformation delete-stack --stack-name "${APP_NAME}-frontend-${OldWorkflowID}"
-              echo "Deleting old buckets"
-              aws s3 rm s3://"${APP_NAME}-${OldWorkflowID}" --recursive
-              aws s3api delete-bucket --bucket "${APP_NAME}-${OldWorkflowID}"
+              echo '------------------Delete Confirmed------------------'
+              APP_ID="udapeople"
+              echo "Deleting bucket: ${APP_ID}-${OldWorkflowID}"
+              aws s3 rm "s3://${APP_ID}-${OldWorkflowID}" --recursive
+              aws s3api delete-bucket --bucket "${APP_ID}-${OldWorkflowID}"
+              echo "Deleting stack: ${APP_ID}-${OldWorkflowID}"
+              aws cloudformation delete-stack --stack-name "${APP_ID}-backend-${OldWorkflowID}"
+              aws cloudformation delete-stack --stack-name "${APP_ID}-frontend-${OldWorkflowID}"
             else
-              echo "Nothing to delete or cleanup"
+              echo '-------------------Cannot Cleanup -------------------'
             fi
             
 
