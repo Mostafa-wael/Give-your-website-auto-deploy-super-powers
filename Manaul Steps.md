@@ -95,4 +95,72 @@
             static_configs:
             - targets: ['ec2-13-58-127-241.us-east-2.compute.amazonaws.com:9100']
       ``` 
-      3. Restart Prometheus service: `sudo systemctl restart prometheus`
+      3. Install Alert manger on your prometheus server. Check this [link](https://codewizardly.com/prometheus-on-aws-ec2-part4/) or follow the following:
+         1. Install Alertmanager.
+            ``` bash 
+            wget https://github.com/prometheus/alertmanager/releases/download/v0.21.0/alertmanager-0.21.0.linux-amd64.tar.gz
+            tar xvfz alertmanager-0.21.0.linux-amd64.tar.gz
+
+            sudo cp alertmanager-0.21.0.linux-amd64/alertmanager /usr/local/bin
+            sudo cp alertmanager-0.21.0.linux-amd64/amtool /usr/local/bin/
+            sudo mkdir /var/lib/alertmanager
+
+            rm -rf alertmanager*
+            ```
+         2. Configure Alertmanager as a service. `/etc/systemd/system/alertmanager.service`
+            ```
+            [Unit]
+            Description=Alert Manager
+            Wants=network-online.target
+            After=network-online.target
+
+            [Service]
+            Type=simple
+            User=prometheus
+            Group=prometheus
+            ExecStart=/usr/local/bin/alertmanager \
+            --config.file=/etc/prometheus/alertmanager.yml \
+            --storage.path=/var/lib/alertmanager
+
+            Restart=always
+
+            [Install]
+            WantedBy=multi-user.target
+            ```
+         3. Add Alertmanager’s configuration `/etc/prometheus/alertmanager.yml`.
+            ``` yaml
+            route:
+               group_by: [Alertname]
+               receiver: email-me
+
+            receivers:
+            -  name: email-me
+               email_configs:
+               - to: EMAIL_YO_WANT_TO_SEND_EMAILS_TO
+                  from: YOUR_EMAIL_ADDRESS
+                  smarthost: smtp.gmail.com:587
+                  auth_username: YOUR_EMAIL_ADDRESS
+                  auth_identity: YOUR_EMAIL_ADDRESS
+                  auth_password: YOUR_EMAIL_PASSWORD
+            ```
+         4. Create a Rule: This is just a simple alert rule. In a nutshell it alerts when an instance has been down for more than 3 minutes. Add this file at `/etc/prometheus/rules.yml`.
+         ``` yaml
+         groups:
+         -  name: Down
+            rules:
+            - alert: InstanceDown
+               expr: up == 0
+               for: 3m
+               labels:
+                  severity: 'critical'
+               annotations:
+                  summary: "Instance  is down"
+                  description: " of job  has been down for more than 3 minutes."
+         ```
+   6. Configure Systemd
+      ``` bash
+      sudo systemctl daemon-reload
+      sudo systemctl enable alertmanager
+      sudo systemctl start alertmanager
+      ```
+   7. Restart Prometheus service: `sudo systemctl restart prometheus`
