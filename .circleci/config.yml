@@ -422,9 +422,6 @@ workflows:
       - deploy-infrastructure:
           # requires: [test-frontend, test-backend, scan-frontend, scan-backend]    
           requires: [build-frontend, build-backend]    
-          filters:
-            branches:
-              only: [main]
       - configure-infrastructure:
           requires: [deploy-infrastructure]
       - run-migrations:
