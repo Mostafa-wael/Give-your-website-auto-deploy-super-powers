@@ -81,8 +81,7 @@
       sudo systemctl enable prometheus
       ```
 
-   4. **[Optional]** Prometheus Service Discovery on AWS EC2, [check this](https://codewizardly.com/prometheus-on-aws-ec2-part3/).
-   5. Connect your backend server to Prometheus:
+   4. Connect your backend server to Prometheus:
       1. Edit `/etc/prometheus/prometheus.yml` file.
       2. Add the following: 
       ``` yaml
@@ -127,7 +126,21 @@
             [Install]
             WantedBy=multi-user.target
             ```
-         3. Add Alertmanager’s configuration `/etc/prometheus/alertmanager.yml`.
+         3. Update Prometheus configuration file. Edit `/etc/prometheus/prometheus.yml`
+            ``` yaml
+            global:
+               scrape_interval: 1s
+               evaluation_interval: 1s
+
+            rule_files:
+            - /etc/prometheus/rules.yml
+            alerting:
+               alertmanagers:
+               - static_configs:
+                  - targets:
+                     - localhost:9093
+            ``` 
+         1. Add Alertmanager’s configuration `/etc/prometheus/alertmanager.yml`.
             ``` yaml
             route:
                group_by: [Alertname]
@@ -143,7 +156,7 @@
                   auth_identity: YOUR_EMAIL_ADDRESS
                   auth_password: YOUR_EMAIL_PASSWORD
             ```
-         4. Create a Rule: This is just a simple alert rule. In a nutshell it alerts when an instance has been down for more than 3 minutes. Add this file at `/etc/prometheus/rules.yml`.
+         2. Create a Rule: This is just a simple alert rule. In a nutshell it alerts when an instance has been down for more than 3 minutes. Add this file at `/etc/prometheus/rules.yml`.
          ``` yaml
          groups:
          -  name: Down
@@ -157,10 +170,10 @@
                   summary: "Instance  is down"
                   description: " of job  has been down for more than 3 minutes."
          ```
-   6. Configure Systemd
+   1. Configure Systemd
       ``` bash
       sudo systemctl daemon-reload
       sudo systemctl enable alertmanager
       sudo systemctl start alertmanager
       ```
-   7. Restart Prometheus service: `sudo systemctl restart prometheus`
+   2. Restart Prometheus service: `sudo systemctl restart prometheus`
