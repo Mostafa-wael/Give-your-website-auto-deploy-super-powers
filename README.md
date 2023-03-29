@@ -1,16 +1,8 @@
 # Udapeople
 ![logo](udapeople.png)
 
-## Diagram of CI/CD Pipeline we will be building
-![Diagram of CI/CD Pipeline we will be building](udapeople-pipeline.png)
-
-### Instructions
-
-* [Selling CI/CD](instructions/0-selling-cicd.md)
-* [Getting Started](instructions/1-getting-started.md)
-* [Deploying Working, Trustworthy Software](instructions/2-deploying-trustworthy-code.md)
-* [Configuration Management](instructions/3-configuration-management.md)
-* [Turn Errors into Sirens](instructions/4-turn-errors-into-sirens.md)
+## CI/CD Pipeline Diagram
+![CI/CD Pipeline Diagram](udapeople-pipeline.png)
 
 ### Built With
 
